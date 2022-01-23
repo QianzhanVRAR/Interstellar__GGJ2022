@@ -18,6 +18,10 @@ public class StarVive : AbstractController
         RootPath.SetActive(false);
         mainCamera = Camera.main;
     }
+    private void Start()
+    {
+      
+    }
     public void ShowData(PlanetDetails planet,Vector2 localtion)
     {
         RootPath.SetActive(true );

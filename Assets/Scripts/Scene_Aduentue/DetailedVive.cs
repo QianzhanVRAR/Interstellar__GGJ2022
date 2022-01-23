@@ -19,6 +19,9 @@ namespace QZVR
         public TMP_Text Time;
         TMP_Text MaxEnergy;
         TMP_Text AtEnergy;
+
+        private int MaxEnergyData;
+        private int AtEnergyData;
         private void Awake()
         {
             Instance = this;
@@ -42,10 +45,13 @@ namespace QZVR
             AtAct = true;
             rootObj.SetActive(AtAct);
             //TODO更新照片
-            MaxEnergy.text ="/"+ this.GetModel<PlayerModel>().MaxEnergy.Value .ToString ();
-            AtEnergy.text = this.GetSystem <ExploreSystem>().GetEnergyConsumption(Trigger.details).ToString ();
+            MaxEnergyData = this.GetModel<PlayerModel>().HaveEnergy .Value;
+            MaxEnergy.text ="/"+ MaxEnergyData.ToString ();
+            AtEnergyData = this.GetSystem<ExploreSystem>().GetEnergyConsumption(Trigger.details);
+            AtEnergy.text = AtEnergyData.ToString ();
             AtTrigger = Trigger;
 
+            Time.transform.parent.gameObject.SetActive(true );
             LineRenderer.SetPosition(0, Trigger.transform.position);
             LineRenderer.SetPosition(1, this.GetModel<BattleshipModel>().PitchOn.OnPlanet.Value .WordLocation + (((Vector2)Trigger.transform.position - this.GetModel<BattleshipModel>().PitchOn.OnPlanet.Value.WordLocation).normalized * Space));
             Time.text = this.GetSystem<ExploreSystem>().GetLightYear(Trigger.details.Location).ToString();
@@ -65,6 +71,26 @@ namespace QZVR
             screenPoint -= screenSize / 2;//将屏幕坐标变换为以屏幕中心为原点
             Vector2 anchorPos = screenPoint / screenSize * canvasRectTransform.sizeDelta;//缩放得到UGUI坐标
             return anchorPos;
+        }
+
+
+        public void SetSail()
+        {
+            Time.transform.parent.gameObject.SetActive(false);
+
+            if (this .GetModel <PlayerModel>().HaveEnergy.Value <AtEnergyData)
+            {
+                Debug.Log("能量不够");
+                return;
+            }
+            this.SendCommand(new SetSailCommand()
+            {
+                Energy = AtEnergyData,
+                ToPlanetEnum = AtTrigger.details,
+                Time= AtEnergyData,
+                FromPlanetEnum=this .GetModel <BattleshipModel>().PitchOn.OnPlanet.Value 
+            });;
+            ShowOrHUi(AtTrigger );
         }
     }
 }

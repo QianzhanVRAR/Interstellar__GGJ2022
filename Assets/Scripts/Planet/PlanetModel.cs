@@ -31,8 +31,7 @@ namespace QZVR
             PlanetDetails data = GetPlanetData(planet) ;
             data.WordLocation = vector2;
             PlanetBufferMemory[planet]  = data;
-            Debug.Log(data.WordLocation);
-            Debug.Log( PlanetBufferMemory[planet].WordLocation);
+          
             return data;
         }
 
