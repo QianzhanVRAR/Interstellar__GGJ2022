@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using QZVR;
 using TMPro;
-public class StarVive : AbstractController
+public class StarVive : IControl
 {
     public static StarVive Instance;
     private PlanetDetails AtPlanet;
@@ -12,23 +12,15 @@ public class StarVive : AbstractController
     public Camera mainCamera;
     public TMP_Text Name;
     public TMP_Text LightYear ;
-    private void Awake()
-    {
-        Instance = this;
-        RootPath.SetActive(false);
-        mainCamera = Camera.main;
-    }
-    private void Start()
-    {
-      
-    }
+  
     public void ShowData(PlanetDetails planet,Vector2 localtion)
     {
         RootPath.SetActive(true );
         AtPlanet = planet;
         transform.localPosition  = WorldToUgui(localtion);
         Name.text = planet.Name;
-        LightYear.text = this.GetSystem<ExploreSystem>().GetLightYear(planet.Location).ToString ();
+        int LightYearData = (int )this.GetSystem<ExploreSystem>().GetLightYear(planet.Location);
+        LightYear.text = LightYearData.ToString ();
     }
     public void HideData(PlanetDetails planet)
     {
@@ -46,5 +38,12 @@ public class StarVive : AbstractController
         screenPoint -= screenSize / 2;//将屏幕坐标变换为以屏幕中心为原点
         Vector2 anchorPos = screenPoint / screenSize * canvasRectTransform.sizeDelta;//缩放得到UGUI坐标
         return anchorPos;
+    }
+
+    public override void Cinit()
+    {
+        Instance = this;
+        RootPath.SetActive(false);
+        mainCamera = Camera.main;
     }
 }

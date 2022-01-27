@@ -16,16 +16,24 @@ public class CreateCrewEnum
         InterstellarApp.Instance.GetModel<BattleshipModel>().GetBattleshipEnum();
     }
 
-
-    [MenuItem("Tools/CloseConnection", false, 2001)]
-    public static void CloseConnection()
-    {
-        InterstellarApp.SQLite.CloseConnection ();
-    }
     [MenuItem("Tools/CreatePlanetEnum", false, 2002)]
     public static void PlanetEnum()
     {
         InterstellarApp.Instance.GetModel<PlanetModel>().GetPlanetEnum();
+    }
+
+    [MenuItem("Tools/ExploreEventEnum", false, 2003)]
+    public static void ExploreEventEnum()
+    {
+        InterstellarApp.Instance.GetModel<ExploreModel>().GetExploreEventEnum();
+    }
+
+
+
+    [MenuItem("Tools/CloseConnection", false, 3000)]
+    public static void CloseConnection()
+    {
+        InterstellarApp.SQLite.CloseConnection();
     }
 
 }

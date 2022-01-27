@@ -11,10 +11,11 @@ public class InterstellarApp : Architecture<InterstellarApp>
         RegisterModel(new CrewModel());
         RegisterModel(new BattleshipModel());
         RegisterModel(new PlanetModel());
+        RegisterModel(new ExploreModel());
 
+        RegisterSystem(new TimeSystem());
         RegisterSystem(new BattleshipSystem());
         RegisterSystem(new ExploreSystem());
-       
 
     }
 

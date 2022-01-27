@@ -17,19 +17,13 @@ namespace QZVR
 
         }
 
-        private void Start()
-        {
-
-            playerModel = this.GetModel<PlayerModel>();
-            this.GetUtility<TransfromUtility>().FindChild<TMP_Text>(transform, "Name").text = playerModel.Name.Value;
-
-            TMP_Text EnergyValue = this.GetUtility<TransfromUtility>().FindChild<TMP_Text>(transform, "EnergyValue");
-            EnergyValue.text = $"{ playerModel.HaveEnergy.Value }/{ playerModel.MaxEnergy.Value }";
-
-        }
 
         public  void ToAduentue()
         {
+           // if (this .GetModel <BattleshipModel>().AllBattleshipsCount==0)
+            //{
+               // SceneManager.LoadScene("Aduentue");
+           // }
             SceneManager.LoadScene("Aduentue");
         }
     }

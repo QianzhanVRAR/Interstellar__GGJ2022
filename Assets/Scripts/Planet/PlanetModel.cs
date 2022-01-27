@@ -15,7 +15,7 @@ namespace QZVR
         {
             get
             {
-                return GetPlanetData( PlanetEnum.spaceStation);
+                return GetPlanetData( 0);
             }
         }
 

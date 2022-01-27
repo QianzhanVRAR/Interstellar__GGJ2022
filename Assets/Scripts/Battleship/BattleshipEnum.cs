@@ -5,6 +5,5 @@ namespace QZVR
     public enum BattleshipEnum
     {
         Discover,
-
     }
 }

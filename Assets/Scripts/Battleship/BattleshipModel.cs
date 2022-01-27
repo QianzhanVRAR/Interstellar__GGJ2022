@@ -9,21 +9,26 @@ using UnityEngine;
 
 namespace QZVR
 {
+    [System.Serializable]
+    public struct BattleshipAduentueData
+    {
+
+        public int[] m_DataTime;
+        public float  m_DurationTime;
+        public int EnergyExpended;
+        public BindableProperty <float>  Progress;
+        public PlanetDetails StartPlanet;
+        public PlanetDetails EndPlanet;
+        public  List <ExploreEventData> LogData;
+        public Battleship Battleship;
+
+    }
     public class BattleshipModel : AbstractModel
     {
-        [System.Serializable]
-        struct BattleshipAduentueData
-        {
-            public float m_StartAduentueTime;
-            public float m_DurationTime;
-            public float EnergyExpended;
-            public float DistanceTravelledEnergy;
-
-            //TODO 获得的资源
-            //TODO 飞船日志
-            public Battleship Battleship;
-        }
-
+       
+        public static readonly string AllBattleshipsKey = "AllBattleships";
+        public static readonly string AllBattleshipsCountKey = "AllBattleshipsCount";
+        public static readonly string DetachedKey = "Detached";
 
         private Battleship m_TestPitchOn;
         public  Battleship PitchOn {
@@ -38,11 +43,11 @@ namespace QZVR
 
             } }
 
-        private Dictionary <BattleshipEnum, List<Battleship>>  AllBattleships = new  Dictionary<BattleshipEnum, List<Battleship>>();
+        public int AllBattleshipsCount;
 
-        private List<BattleshipAduentueData> Detached = new List<BattleshipAduentueData>();
+        public Dictionary <BattleshipEnum, List<Battleship>>  AllBattleships = new  Dictionary<BattleshipEnum, List<Battleship>>();
 
-
+        public  List<BattleshipAduentueData> Detached = new List<BattleshipAduentueData>();
 
         public void TraversalBattleships(BattleshipEnum battleship, Action<Battleship> action)
         {
@@ -67,7 +72,18 @@ namespace QZVR
             }
         }
 
-        public void AddBattlenships(BattleshipEnum battleship )
+
+
+        public void RetureBattlenships(BattleshipAduentueData data)
+        {
+            data.Battleship.SetArrivePlanet(data.EndPlanet);
+            RemoveDetached(data);
+            AddBattlenships(data.Battleship);
+            this.SendEvent(new BattleshipEvent.ReturnDispatchBattlenship() { data = data, Count = Detached.Count });
+        }
+
+
+        public void AddBattlenships(BattleshipEnum battleship)
         {
             BattleshipDetails details = GetCrewData(battleship);
             List<Battleship> tempList;
@@ -78,35 +94,58 @@ namespace QZVR
             }
             Battleship temp = new Battleship(details);
             tempList.Add(temp);
+            AllBattleshipsCount++;
+            this.SendEvent(new BattleshipEvent.AddBattleship() { BattleshipEnum  = battleship, Battleship= temp ,Count = AllBattleshipsCount});
+            SaveBattlenships();
+        }
+        public void AddBattlenships(Battleship battleship)
+        {
+            BattleshipEnum battleshipEnum = GetBlattlenshipType(battleship);
+            List<Battleship> tempList;
+            if (!AllBattleships.TryGetValue(battleshipEnum, out tempList))
+            {
+                tempList = new List<Battleship>();
+                AllBattleships.Add(battleshipEnum, tempList);
+            }
+            tempList.Add(battleship);
+            AllBattleshipsCount++;
+            this.SendEvent(new BattleshipEvent.AddBattleship() { BattleshipEnum = battleshipEnum, Battleship = battleship, Count = AllBattleshipsCount });
             SaveBattlenships();
         }
 
-        public void  DispatchBattlenship(BattleshipEnum battleship,float _startTime,float _durationTime,float _energyExpended, float _distanceTravelledEnergy)
+
+        public void AddDetached(BattleshipAduentueData data)
         {
-          
-            if (AllBattleships[battleship].Count== 0)
-            {
-                Debug.LogError("不存在该船");
-                return;
-            }
-
-            BattleshipAduentueData data = new BattleshipAduentueData();
-            data.m_StartAduentueTime = _startTime;
-            data.m_DurationTime = _durationTime;
-            data.EnergyExpended = _energyExpended;
-            data.DistanceTravelledEnergy = _distanceTravelledEnergy;
-            data.Battleship = AllBattleships[battleship][0];
             Detached.Add(data);
-
-            if (data.Battleship.Crews .Count == 0)
-            {
-                Crew temp = this.GetModel<CrewModel>().GetCrew();
-                data.Battleship.Crews.Add(temp);
-                temp.SetBattleship(data.Battleship);
-            }
-
+            this.SendEvent(new BattleshipEvent.DispatchBattlenship() { data = data,Count = Detached.Count  });
             SaveDetachedBattleships();
         }
+
+
+        public void RemoveBattlenships(Battleship battleship)
+        {
+            AllBattleships[GetBlattlenshipType(battleship)].Remove(battleship);
+            AllBattleshipsCount--;
+            this.SendEvent(new BattleshipEvent.RemoveBattleship() { BattleshipEnum = GetBlattlenshipType(battleship), Battleship = battleship, Count = AllBattleshipsCount });
+            SaveBattlenships();
+        }
+
+        public void RemoveDetached(BattleshipAduentueData data)
+        {
+            Detached.Remove(data);
+            this.SendEvent(new BattleshipEvent.RemoveDispatchBattlenship() { data = data, Count = Detached.Count });
+            SaveDetachedBattleships();
+        }
+
+        public   BattleshipEnum GetBlattlenshipType(Battleship battleship)
+        {
+            return (BattleshipEnum)System.Enum.Parse(typeof(BattleshipEnum), battleship.Details.Name);
+        }
+        public List<Battleship> GetBattleships(BattleshipEnum battleship)
+        {
+            return AllBattleships[battleship];
+        }
+
 
 
         public void Save()
@@ -116,15 +155,30 @@ namespace QZVR
         }
         public  void SaveBattlenships()
         {
-            ES3.Save("IdleBattleships", AllBattleships);
-           
+            ES3.Save(AllBattleshipsKey, AllBattleships);
+            ES3.Save(AllBattleshipsCountKey, AllBattleshipsCount);
         }
 
         public void SaveDetachedBattleships()
         {
-            ES3.Save("DetachedBattleships", Detached);
+            ES3.Save(DetachedKey, Detached);
         }
 
+        private void LoadBattlenships()
+        {
+            if (ES3.KeyExists(AllBattleshipsKey))
+            {
+                AllBattleships = ES3.Load<Dictionary<BattleshipEnum, List<Battleship>>>(AllBattleshipsKey);
+            }
+            if (ES3.KeyExists(DetachedKey))
+            {
+                Detached = ES3.Load<List<BattleshipAduentueData>>(DetachedKey);
+            }
+            if (ES3.KeyExists(AllBattleshipsCountKey))
+            {
+                AllBattleshipsCount = ES3.Load<int  >(AllBattleshipsCountKey);
+            }
+        }
 
         protected override void OnInit()
 		{
@@ -132,12 +186,7 @@ namespace QZVR
         }
 
 
-        private void LoadBattlenships()
-        {
-            if (!ES3.KeyExists("IdleBattleships")) return;
-            AllBattleships = ES3.Load < Dictionary< BattleshipEnum, List <Battleship>>> ("IdleBattleships");
-        }
-
+       
         private BattleshipDetails GetCrewData(BattleshipEnum crew)
         {
             BattleshipDetails details = new BattleshipDetails();

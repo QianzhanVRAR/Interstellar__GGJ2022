@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace QZVR 
@@ -9,8 +10,7 @@ namespace QZVR
     {
         public static GameRoot Instance;
 
-        public PlayerModel PlayerModel; 
-
+        PlayerModel playerModel;
 
 
         private void Awake()
@@ -21,7 +21,17 @@ namespace QZVR
                 return;
             }
             Instance = this;
+            DontDestroyOnLoad(gameObject);
             InterstellarApp.Instance.GetModel<PlayerModel>();
+        }
+
+        private void Start()
+        {
+            playerModel = this.GetModel<PlayerModel>();
+            this.GetUtility<TransfromUtility>().FindChild<TMP_Text>(transform, "Name").text = playerModel.Name.Value;
+
+            TMP_Text EnergyValue = this.GetUtility<TransfromUtility>().FindChild<TMP_Text>(transform, "EnergyValue");
+            EnergyValue.text = $"{ playerModel.HaveEnergy.Value }/{ playerModel.MaxEnergy.Value }";
         }
         private void StartGameUI(bool  data)
         {

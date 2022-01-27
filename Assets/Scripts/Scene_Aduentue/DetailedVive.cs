@@ -16,12 +16,11 @@ namespace QZVR
         public float Test;
         public StarTriggerTool AtTrigger;
         public  LineRenderer LineRenderer;
-        public TMP_Text Time;
         TMP_Text MaxEnergy;
         TMP_Text AtEnergy;
 
-        private int MaxEnergyData;
-        private int AtEnergyData;
+        private float  MaxEnergyData;
+        private float  AtEnergyData;
         private void Awake()
         {
             Instance = this;
@@ -29,6 +28,7 @@ namespace QZVR
 
         private void Start()
         {
+         
             rootObj.SetActive(false);
             MaxEnergy = this.GetUtility<TransfromUtility>().FindChild<TMP_Text>(transform, "MaxEnergy");
             AtEnergy = this.GetUtility<TransfromUtility>().FindChild<TMP_Text>(transform, "AtEnergy");
@@ -46,16 +46,13 @@ namespace QZVR
             rootObj.SetActive(AtAct);
             //TODO更新照片
             MaxEnergyData = this.GetModel<PlayerModel>().HaveEnergy .Value;
-            MaxEnergy.text ="/"+ MaxEnergyData.ToString ();
+            MaxEnergy.text ="/"+ ((int )MaxEnergyData).ToString ();
             AtEnergyData = this.GetSystem<ExploreSystem>().GetEnergyConsumption(Trigger.details);
-            AtEnergy.text = AtEnergyData.ToString ();
+            AtEnergy.text = ((int)AtEnergyData).ToString ();
             AtTrigger = Trigger;
-
-            Time.transform.parent.gameObject.SetActive(true );
             LineRenderer.SetPosition(0, Trigger.transform.position);
             LineRenderer.SetPosition(1, this.GetModel<BattleshipModel>().PitchOn.OnPlanet.Value .WordLocation + (((Vector2)Trigger.transform.position - this.GetModel<BattleshipModel>().PitchOn.OnPlanet.Value.WordLocation).normalized * Space));
-            Time.text = this.GetSystem<ExploreSystem>().GetLightYear(Trigger.details.Location).ToString();
-            Time.transform.parent.position = ((Vector2)AtTrigger.transform.position - this.GetModel<BattleshipModel>().PitchOn.OnPlanet.Value.WordLocation) * Test;
+
         }
       
         public override void Cinit()
@@ -76,20 +73,23 @@ namespace QZVR
 
         public void SetSail()
         {
-            Time.transform.parent.gameObject.SetActive(false);
-
             if (this .GetModel <PlayerModel>().HaveEnergy.Value <AtEnergyData)
             {
                 Debug.Log("能量不够");
                 return;
             }
+            if (this.GetModel<BattleshipModel>().PitchOn .OnPlanet.Value  .Equals ( AtTrigger.details))
+            {
+                return;
+            }
             this.SendCommand(new SetSailCommand()
             {
-                Energy = AtEnergyData,
+                Energy = (int )AtEnergyData,
                 ToPlanetEnum = AtTrigger.details,
-                Time= AtEnergyData,
+                ExpendTime= AtEnergyData,
                 FromPlanetEnum=this .GetModel <BattleshipModel>().PitchOn.OnPlanet.Value 
-            });;
+            });
+            canvasRectTransform.gameObject.SetActive(false);
             ShowOrHUi(AtTrigger );
         }
     }
